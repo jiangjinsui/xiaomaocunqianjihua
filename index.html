@@ -2,8 +2,14 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#3a2e2a">
     <title>🐱 猫咪存钱日记</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -31,18 +37,27 @@
 
     * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
 
-    body {
-        margin: 0;
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        padding: 20px 16px 40px;
-        font-family: 'Noto Sans SC', sans-serif;
-        background-color: #e8dfd0;
-        background-image:
-            url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c4b8a8' fill-opacity='0.18'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    }
+    html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px 16px 40px;
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(40px, env(safe-area-inset-bottom));
+    font-family: 'Noto Sans SC', sans-serif;
+    background-color: #e8dfd0;
+    background-image:
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c4b8a8' fill-opacity='0.18'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
 
     /* ========== 开屏动画 ========== */
     .splash {
@@ -96,19 +111,23 @@
 
     /* ========== 主容器 ========== */
     .book {
-        max-width: 420px;
-        width: 100%;
-        background: var(--paper);
-        border-radius: 4px 20px 20px 4px;
-        box-shadow:
-            -6px 0 0 #c4a882,
-            -8px 0 0 #b89a72,
-            0 20px 60px rgba(0,0,0,0.18),
-            inset 0 0 0 1px rgba(255,255,255,0.6);
-        position: relative;
-        z-index: 1;
-        overflow: hidden;
-    }
+    max-width: 420px;
+    width: 100%;
+    min-height: calc(100vh - 60px);
+    min-height: calc(100dvh - 60px);
+    background: var(--paper);
+    border-radius: 4px 20px 20px 4px;
+    box-shadow:
+        -6px 0 0 #c4a882,
+        -8px 0 0 #b89a72,
+        0 20px 60px rgba(0,0,0,0.18),
+        inset 0 0 0 1px rgba(255,255,255,0.6);
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
 
     /* 书脊装饰线 */
     .book::before {
@@ -437,9 +456,10 @@
 
     /* ========== 故事区 ========== */
     .story-section {
-        padding: 16px 18px 20px 28px;
-        min-height: 300px;
-    }
+    padding: 16px 18px 20px 28px;
+    min-height: 300px;
+    flex: 1;
+}
 
     /* 横线纸纹效果 */
     .story-section {
