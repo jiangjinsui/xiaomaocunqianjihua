@@ -9,6 +9,14 @@
     <meta name="theme-color" content="#3a2e2a">
     <title>🐱 猫咪存钱日记</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3a2e2a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -74,14 +82,21 @@ body {
     }
     .splash.hide { opacity: 0; transform: scale(0.96); pointer-events: none; }
 
-    .splash-inner { text-align: center; }
+    .splash-inner { 
+    text-align: center; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 
     .splash-cat {
-        font-size: 90px;
-        display: block;
-        animation: splashFloat 2s ease-in-out infinite;
-        filter: drop-shadow(0 8px 20px rgba(201,116,106,0.3));
-    }
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    display: block;
+    animation: splashFloat 2s ease-in-out infinite;
+    filter: drop-shadow(0 8px 20px rgba(201,116,106,0.3));
+}
     @keyframes splashFloat {
         0%,100% { transform: translateY(0) rotate(-3deg); }
         50% { transform: translateY(-16px) rotate(3deg); }
@@ -230,6 +245,12 @@ body {
     .cat-frame.bounce {
         animation: catBounce 0.5s cubic-bezier(0.34,1.56,0.64,1);
     }
+    .cat-img {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+    border-radius: 50%;
+}
     @keyframes catBounce {
         0% { transform: scale(1); }
         40% { transform: scale(1.15) rotate(-6deg); }
@@ -587,7 +608,13 @@ body {
         background: linear-gradient(90deg, var(--gold-light), var(--rose-light), var(--lavender));
     }
 
-    .dialog-cat { font-size: 56px; margin-bottom: 8px; display: block; }
+    .dialog-cat { 
+    width: 80px; 
+    height: 80px; 
+    object-fit: contain;
+    margin-bottom: 8px; 
+    display: block; 
+}
     .dialog-title { font-family: 'Noto Serif SC', serif; font-size: 1.1rem; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
     .dialog-amount { font-family: 'Noto Serif SC', serif; font-size: 2.4rem; font-weight: 900; color: var(--rose); margin: 10px 0; }
     .dialog-amount .unit { font-size: 0.9rem; color: var(--ink-muted); font-family: 'Noto Sans SC', sans-serif; }
@@ -798,7 +825,7 @@ body {
 <!-- 开屏 -->
 <div class="splash" id="splash">
     <div class="splash-inner">
-        <span class="splash-cat">🐱</span>
+        <img class="splash-cat" src="https://img.heliar.top/file/1779028977085_1779028911966.png" alt="猫咪">
         <div class="splash-title">猫咪存钱日记</div>
         <div class="splash-sub">每天一点点，月底见分晓</div>
         <div class="splash-line"></div>
@@ -824,7 +851,9 @@ body {
     <!-- 猫咪 -->
     <div class="cat-section">
         <div class="cat-portrait">
-            <div class="cat-frame" id="catFace">😺</div>
+            <div class="cat-frame" id="catFace">
+    <img src="https://img.heliar.top/file/1779028250074_1779028203055.png" alt="猫咪" class="cat-img">
+</div>
             <div class="mood-tag" id="mood">开心~</div>
         </div>
 
@@ -892,7 +921,9 @@ body {
 <!-- 存钱弹窗 -->
 <div class="overlay" id="saveModal">
     <div class="dialog">
-        <span class="dialog-cat" id="modalCat">😺</span>
+        <div class="dialog-cat" id="modalCat">
+    <img src="https://img.heliar.top/file/1779028250074_1779028203055.png" alt="猫咪" style="width:80px;height:80px;object-fit:contain;">
+</div>
         <div class="dialog-title" id="modalTitle">完成啦！请存入</div>
         <div class="dialog-amount"><span id="modalMoney">5</span><span class="unit">元</span></div>
         <div class="dialog-desc" id="modalDesc">把这笔钱存到你的存钱罐吧~</div>
@@ -1208,7 +1239,8 @@ function updateUI() {
 
     // 心情
     const mood = getMood();
-    $('catFace').textContent = mood.emoji;
+    // 不要改变猫咪图片，只更新心情标签
+// $('catFace').textContent = mood.emoji;  // 删掉或注释这行
     $('mood').textContent    = mood.text;
 
     // 进度
@@ -1302,7 +1334,7 @@ function handleChoice(idx) {
     updateUI();
 
     const mood = getMood();
-    $('modalCat').textContent   = mood.emoji;
+    $('modalCat').innerHTML = `<img src="https://img.heliar.top/file/1779028250074_1779028203055.png" alt="猫咪" style="width:80px;height:80px;object-fit:contain;">`;
     $('modalMoney').textContent = pendingOpt.money;
     $('modalTitle').textContent = pendingOpt.money > 0 ? '完成啦！请存入' : '今天不用存钱~';
     $('modalDesc').textContent  = pendingOpt.money > 0
@@ -1489,6 +1521,12 @@ setTimeout(() => {
     $('splash').classList.add('hide');
     setTimeout(() => $('splash').remove(), 600);
 }, 1800);
+// 注册 Service Worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('SW 注册成功'))
+        .catch(err => console.log('SW 注册失败', err));
+}
 </script>
 </body>
 </html>
