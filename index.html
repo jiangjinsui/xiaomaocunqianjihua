@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🐱 猫咪存钱日记</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+    :root {
+        --cream: #faf6ef;
+        --cream-dark: #f2ead8;
+        --paper: #fdf8f0;
+        --ink: #3a2e2a;
+        --ink-light: #7a6a62;
+        --ink-muted: #b0a098;
+        --rose: #c9746a;
+        --rose-light: #e8a49e;
+        --rose-pale: #f5ddd9;
+        --sage: #7a9e8a;
+        --sage-light: #a8c4b4;
+        --sage-pale: #deeee6;
+        --gold: #c9a84c;
+        --gold-light: #e0c47a;
+        --gold-pale: #f5edce;
+        --lavender: #8a7aaa;
+        --lavender-pale: #e8e2f5;
+        --border: rgba(58,46,42,0.12);
+        --shadow: rgba(58,46,42,0.08);
+    }
+
+    * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 20px 16px 40px;
+        font-family: 'Noto Sans SC', sans-serif;
+        background-color: #e8dfd0;
+        background-image:
+            url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c4b8a8' fill-opacity='0.18'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    /* ========== 开屏动画 ========== */
+    .splash {
+        position: fixed;
+        inset: 0;
+        background: var(--cream);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.6s ease, transform 0.6s ease;
+        background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23c9a84c' fill-opacity='0.08'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
+    }
+    .splash.hide { opacity: 0; transform: scale(0.96); pointer-events: none; }
+
+    .splash-inner { text-align: center; }
+
+    .splash-cat {
+        font-size: 90px;
+        display: block;
+        animation: splashFloat 2s ease-in-out infinite;
+        filter: drop-shadow(0 8px 20px rgba(201,116,106,0.3));
+    }
+    @keyframes splashFloat {
+        0%,100% { transform: translateY(0) rotate(-3deg); }
+        50% { transform: translateY(-16px) rotate(3deg); }
+    }
+
+    .splash-title {
+        font-family: 'Ma Shan Zheng', cursive;
+        font-size: 2rem;
+        color: var(--ink);
+        margin-top: 16px;
+        letter-spacing: 4px;
+    }
+    .splash-sub {
+        font-size: 0.85rem;
+        color: var(--ink-muted);
+        margin-top: 8px;
+        letter-spacing: 2px;
+    }
+    .splash-line {
+        width: 80px;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        margin: 20px auto 0;
+        animation: lineGrow 1.5s ease forwards;
+    }
+    @keyframes lineGrow { from { width: 0; opacity: 0; } to { width: 80px; opacity: 1; } }
+
+    /* ========== 主容器 ========== */
+    .book {
+        max-width: 420px;
+        width: 100%;
+        background: var(--paper);
+        border-radius: 4px 20px 20px 4px;
+        box-shadow:
+            -6px 0 0 #c4a882,
+            -8px 0 0 #b89a72,
+            0 20px 60px rgba(0,0,0,0.18),
+            inset 0 0 0 1px rgba(255,255,255,0.6);
+        position: relative;
+        z-index: 1;
+        overflow: hidden;
+    }
+
+    /* 书脊装饰线 */
+    .book::before {
+        content: '';
+        position: absolute;
+        left: 18px;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: linear-gradient(180deg, transparent, var(--border) 10%, var(--border) 90%, transparent);
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    /* 纸张纹理 */
+    .book::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* ========== 顶部标题栏 ========== */
+    .header {
+        background: linear-gradient(135deg, var(--ink) 0%, #5a4840 100%);
+        padding: 14px 18px 14px 28px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 10px; }
+
+    .weather-icon { font-size: 1.3rem; }
+
+    .day-pill {
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: #f5ede0;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        letter-spacing: 1px;
+    }
+
+    .header-right { display: flex; gap: 8px; }
+
+    .hdr-btn {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.18);
+        color: #f5ede0;
+        padding: 5px 11px;
+        border-radius: 14px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.2s;
+        letter-spacing: 0.5px;
+    }
+    .hdr-btn:hover { background: rgba(255,255,255,0.2); }
+    .hdr-btn:disabled { opacity: 0.35; cursor: default; }
+
+    /* ========== 猫咪区 ========== */
+    .cat-section {
+        padding: 24px 20px 18px 28px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        background: linear-gradient(180deg, #fdf4e8 0%, var(--paper) 100%);
+        border-bottom: 1px solid var(--border);
+        position: relative;
+    }
+
+    .cat-portrait {
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .cat-frame {
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--gold-pale), var(--rose-pale));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 52px;
+        box-shadow: 0 4px 16px var(--shadow), 0 0 0 3px white, 0 0 0 5px var(--gold-light);
+        cursor: pointer;
+        transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+        position: relative;
+        z-index: 1;
+    }
+    .cat-frame:hover { transform: scale(1.07) rotate(-4deg); }
+    .cat-frame.bounce {
+        animation: catBounce 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes catBounce {
+        0% { transform: scale(1); }
+        40% { transform: scale(1.15) rotate(-6deg); }
+        100% { transform: scale(1); }
+    }
+
+    .mood-tag {
+        position: absolute;
+        bottom: -4px;
+        right: -8px;
+        background: white;
+        border: 1.5px solid var(--gold-light);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.68rem;
+        color: var(--rose);
+        font-weight: 700;
+        box-shadow: 0 2px 6px var(--shadow);
+        white-space: nowrap;
+        z-index: 2;
+    }
+
+    .cat-info { flex: 1; min-width: 0; }
+
+    .name-display-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .cat-name-label {
+        font-family: 'Ma Shan Zheng', cursive;
+        font-size: 1.4rem;
+        color: var(--ink);
+        letter-spacing: 2px;
+    }
+
+    .name-edit-btn {
+        background: none;
+        border: none;
+        font-size: 0.85rem;
+        cursor: pointer;
+        opacity: 0.4;
+        padding: 2px;
+        transition: opacity 0.2s, transform 0.2s;
+    }
+    .name-edit-btn:hover { opacity: 0.8; transform: scale(1.15); }
+
+    .name-input-row {
+        display: none;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+    .name-input-row.show { display: flex; }
+
+    .name-field {
+        border: 1.5px solid var(--gold-light);
+        border-radius: 12px;
+        padding: 6px 12px;
+        font-size: 0.95rem;
+        font-family: 'Ma Shan Zheng', cursive;
+        width: 100px;
+        outline: none;
+        background: var(--gold-pale);
+        color: var(--ink);
+        letter-spacing: 2px;
+    }
+    .name-field:focus { border-color: var(--rose); }
+
+    .name-ok {
+        background: var(--rose);
+        border: none;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 10px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.2s;
+    }
+    .name-ok:hover { background: var(--rose-light); }
+
+    /* 迷你属性条 */
+    .mini-stats { display: flex; flex-direction: column; gap: 5px; }
+
+    .mini-stat { display: flex; align-items: center; gap: 6px; }
+
+    .mini-stat-icon { font-size: 0.8rem; width: 18px; text-align: center; }
+
+    .mini-bar-track {
+        flex: 1;
+        height: 6px;
+        background: rgba(58,46,42,0.08);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .mini-bar-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.5s ease;
+    }
+    .mini-bar-fill.intimacy { background: linear-gradient(90deg, var(--rose-light), var(--rose)); }
+    .mini-bar-fill.fullness { background: linear-gradient(90deg, var(--sage-light), var(--sage)); }
+
+    .mini-stat-val {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--ink-light);
+        min-width: 22px;
+        text-align: right;
+    }
+
+    /* ========== 存款区 ========== */
+    .savings-section {
+        padding: 16px 20px 16px 28px;
+        background: white;
+        border-bottom: 1px solid var(--border);
+        position: relative;
+    }
+
+    .savings-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 10px;
+    }
+
+    .savings-left {}
+
+    .savings-label {
+        font-size: 0.7rem;
+        color: var(--ink-muted);
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+
+    .savings-amount {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+    }
+
+    .savings-num {
+        font-family: 'Noto Serif SC', serif;
+        font-size: 2.6rem;
+        font-weight: 900;
+        color: var(--ink);
+        line-height: 1;
+        transition: all 0.3s;
+    }
+
+    .savings-unit {
+        font-size: 0.9rem;
+        color: var(--ink-muted);
+        font-weight: 600;
+    }
+
+    .savings-right { text-align: right; }
+
+    .goal-label {
+        font-size: 0.68rem;
+        color: var(--ink-muted);
+        margin-bottom: 2px;
+    }
+
+    .goal-num {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--gold);
+    }
+
+    /* 进度条 */
+    .progress-track {
+        height: 10px;
+        background: var(--cream-dark);
+        border-radius: 5px;
+        overflow: visible;
+        position: relative;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--gold-light), var(--gold), var(--rose));
+        border-radius: 5px;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+
+    .progress-fill::after {
+        content: '';
+        position: absolute;
+        right: -1px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 14px;
+        height: 14px;
+        background: white;
+        border: 2.5px solid var(--gold);
+        border-radius: 50%;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .progress-milestones {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 6px;
+        padding: 0 2px;
+    }
+
+    .milestone {
+        font-size: 0.6rem;
+        color: var(--ink-muted);
+        text-align: center;
+        position: relative;
+    }
+
+    .milestone.reached { color: var(--gold); font-weight: 700; }
+
+    /* ========== 故事区 ========== */
+    .story-section {
+        padding: 16px 18px 20px 28px;
+        min-height: 300px;
+    }
+
+    /* 横线纸纹效果 */
+    .story-section {
+        background-image: repeating-linear-gradient(
+            transparent,
+            transparent 27px,
+            rgba(58,46,42,0.05) 27px,
+            rgba(58,46,42,0.05) 28px
+        );
+        background-size: 100% 28px;
+    }
+
+    .event-card {
+        background: rgba(255,255,255,0.7);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 14px;
+        border-left: 3px solid var(--gold-light);
+        box-shadow: 0 2px 8px var(--shadow);
+        backdrop-filter: blur(4px);
+    }
+
+    .event-title {
+        font-family: 'Noto Serif SC', serif;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: 6px;
+    }
+
+    .event-desc {
+        font-size: 0.84rem;
+        line-height: 1.65;
+        color: var(--ink-light);
+    }
+
+    .options-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .opt-btn {
+        background: rgba(255,255,255,0.85);
+        border: 1.5px solid var(--border);
+        padding: 12px 14px;
+        border-radius: 12px;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.22s;
+        font-family: inherit;
+        box-shadow: 0 2px 6px var(--shadow);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .opt-btn::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        background: var(--gold-light);
+        transition: background 0.2s;
+    }
+
+    .opt-btn:hover {
+        border-color: var(--gold-light);
+        transform: translateX(4px);
+        box-shadow: 0 4px 14px var(--shadow);
+        background: var(--gold-pale);
+    }
+    .opt-btn:hover::before { background: var(--gold); }
+    .opt-btn:active { transform: translateX(4px) scale(0.98); }
+    .opt-btn:disabled { opacity: 0.45; pointer-events: none; }
+
+    .opt-top { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+    .opt-emoji { font-size: 1.2rem; }
+    .opt-label { flex: 1; font-size: 0.9rem; font-weight: 600; color: var(--ink); }
+
+    .opt-bottom { display: flex; justify-content: space-between; align-items: center; padding-left: 28px; }
+    .opt-tip { font-size: 0.68rem; color: var(--ink-muted); }
+    .opt-money-badge {
+        background: linear-gradient(135deg, var(--sage-pale), var(--sage-light));
+        color: var(--sage);
+        padding: 3px 9px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        border: 1px solid var(--sage-light);
+    }
+
+    /* ========== 弹窗 ========== */
+    .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(30,20,16,0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+        padding: 20px;
+        backdrop-filter: blur(3px);
+    }
+    .overlay.show { opacity: 1; pointer-events: auto; }
+
+    .dialog {
+        background: var(--paper);
+        border-radius: 20px;
+        padding: 28px 22px;
+        max-width: 340px;
+        width: 100%;
+        text-align: center;
+        transform: translateY(20px) scale(0.95);
+        transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.5);
+        position: relative;
+        overflow: hidden;
+    }
+    .overlay.show .dialog { transform: translateY(0) scale(1); }
+
+    .dialog::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--gold-light), var(--rose-light), var(--lavender));
+    }
+
+    .dialog-cat { font-size: 56px; margin-bottom: 8px; display: block; }
+    .dialog-title { font-family: 'Noto Serif SC', serif; font-size: 1.1rem; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+    .dialog-amount { font-family: 'Noto Serif SC', serif; font-size: 2.4rem; font-weight: 900; color: var(--rose); margin: 10px 0; }
+    .dialog-amount .unit { font-size: 0.9rem; color: var(--ink-muted); font-family: 'Noto Sans SC', sans-serif; }
+    .dialog-desc { font-size: 0.82rem; color: var(--ink-light); margin-bottom: 20px; line-height: 1.55; }
+
+    .dialog-btns { display: flex; gap: 10px; }
+
+    .dialog-btn {
+        flex: 1;
+        padding: 13px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        border: none;
+        transition: all 0.2s;
+    }
+    .dialog-btn.primary {
+        background: linear-gradient(135deg, var(--sage), #5a8a74);
+        color: white;
+        box-shadow: 0 4px 12px rgba(122,158,138,0.4);
+    }
+    .dialog-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(122,158,138,0.5); }
+    .dialog-btn.secondary { background: var(--cream-dark); color: var(--ink-muted); }
+    .dialog-btn:active { transform: scale(0.97); }
+
+    /* 历史记录弹窗 */
+    .history-header {
+        font-family: 'Ma Shan Zheng', cursive;
+        font-size: 1.3rem;
+        color: var(--ink);
+        margin-bottom: 4px;
+        letter-spacing: 2px;
+    }
+
+    .history-sub { font-size: 0.72rem; color: var(--ink-muted); margin-bottom: 14px; }
+
+    .history-scroll {
+        max-height: 260px;
+        overflow-y: auto;
+        text-align: left;
+        margin: 0 -4px;
+        padding: 0 4px;
+    }
+    .history-scroll::-webkit-scrollbar { width: 3px; }
+    .history-scroll::-webkit-scrollbar-track { background: transparent; }
+    .history-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .history-entry {
+        display: grid;
+        grid-template-columns: 44px 1fr auto;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 4px;
+        border-bottom: 1px dashed var(--border);
+        font-size: 0.8rem;
+    }
+    .history-entry:last-child { border-bottom: none; }
+
+    .h-day {
+        font-weight: 700;
+        color: var(--rose);
+        font-size: 0.72rem;
+    }
+
+    .h-action { color: var(--ink); }
+    .h-saved { font-weight: 700; color: var(--sage); }
+    .h-skipped { color: var(--ink-muted); }
+
+    .history-empty { text-align: center; color: var(--ink-muted); padding: 20px; font-size: 0.85rem; }
+
+    .history-summary {
+        margin-top: 12px;
+        padding: 10px 14px;
+        background: var(--gold-pale);
+        border-radius: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.78rem;
+    }
+    .history-summary-label { color: var(--ink-light); }
+    .history-summary-val { font-weight: 700; color: var(--gold); font-size: 0.9rem; }
+
+    /* ========== 结局 ========== */
+    .ending {
+        text-align: center;
+        padding: 20px 10px;
+    }
+
+    .ending-ribbon {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--gold-light), var(--gold));
+        color: white;
+        font-family: 'Ma Shan Zheng', cursive;
+        font-size: 1.1rem;
+        padding: 6px 20px;
+        border-radius: 4px;
+        letter-spacing: 3px;
+        box-shadow: 0 4px 12px rgba(201,168,76,0.4);
+        margin-bottom: 16px;
+    }
+
+    .ending-emoji { font-size: 72px; margin: 8px 0 16px; display: block; }
+
+    .ending-stats {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+
+    .ending-stat {
+        background: white;
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        padding: 10px 14px;
+        min-width: 80px;
+    }
+
+    .ending-stat-num {
+        font-family: 'Noto Serif SC', serif;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--ink);
+    }
+
+    .ending-stat-label {
+        font-size: 0.65rem;
+        color: var(--ink-muted);
+        margin-top: 2px;
+    }
+
+    .ending-msg {
+        font-size: 0.86rem;
+        line-height: 1.7;
+        color: var(--ink-light);
+        background: var(--cream);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 12px;
+        border: 1px dashed var(--border);
+        font-family: 'Noto Serif SC', serif;
+    }
+
+    .ending-tip {
+        font-size: 0.75rem;
+        color: var(--sage);
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .replay-btn {
+        background: linear-gradient(135deg, var(--ink), #5a4840);
+        color: var(--cream);
+        border: none;
+        padding: 13px 28px;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        letter-spacing: 1px;
+        box-shadow: 0 6px 20px rgba(58,46,42,0.35);
+        transition: all 0.2s;
+    }
+    .replay-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(58,46,42,0.45); }
+
+    /* ========== Toast ========== */
+    .toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(80px);
+        background: var(--ink);
+        color: var(--cream);
+        padding: 11px 22px;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        z-index: 999;
+        transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        white-space: nowrap;
+        letter-spacing: 0.5px;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ========== 数字跳动动画 ========== */
+    @keyframes numPop {
+        0% { transform: scale(1); }
+        40% { transform: scale(1.2); color: var(--rose); }
+        100% { transform: scale(1); }
+    }
+    .num-pop { animation: numPop 0.4s ease; }
+
+    /* 响应式 */
+    @media (max-width: 380px) {
+        .cat-frame { width: 72px; height: 72px; font-size: 44px; }
+        .savings-num { font-size: 2.1rem; }
+    }
+    </style>
+</head>
+<body>
+
+<!-- 开屏 -->
+<div class="splash" id="splash">
+    <div class="splash-inner">
+        <span class="splash-cat">🐱</span>
+        <div class="splash-title">猫咪存钱日记</div>
+        <div class="splash-sub">每天一点点，月底见分晓</div>
+        <div class="splash-line"></div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="book" id="app">
+
+    <!-- 顶部 -->
+    <div class="header">
+        <div class="header-left">
+            <span class="weather-icon" id="weather">☀️</span>
+            <span class="day-pill">第 <span id="dayNum">1</span> / 30 天</span>
+        </div>
+        <div class="header-right">
+            <button class="hdr-btn" id="undoBtn" disabled>↩ 撤回</button>
+            <button class="hdr-btn" id="historyBtn">📋 记录</button>
+        </div>
+    </div>
+
+    <!-- 猫咪 -->
+    <div class="cat-section">
+        <div class="cat-portrait">
+            <div class="cat-frame" id="catFace">😺</div>
+            <div class="mood-tag" id="mood">开心~</div>
+        </div>
+
+        <div class="cat-info">
+            <div class="name-display-row" id="nameRow">
+                <span class="cat-name-label" id="nameShow">小橘</span>
+                <button class="name-edit-btn" id="editBtn">✏️</button>
+            </div>
+            <div class="name-input-row" id="nameEditRow">
+                <input type="text" class="name-field" id="nameInput" maxlength="6" placeholder="起个名字">
+                <button class="name-ok" id="nameOkBtn">好</button>
+            </div>
+
+            <div class="mini-stats">
+                <div class="mini-stat">
+                    <span class="mini-stat-icon">💕</span>
+                    <div class="mini-bar-track">
+                        <div class="mini-bar-fill intimacy" id="intimacyBar" style="width:50%"></div>
+                    </div>
+                    <span class="mini-stat-val" id="intimacy">50</span>
+                </div>
+                <div class="mini-stat">
+                    <span class="mini-stat-icon">🍖</span>
+                    <div class="mini-bar-track">
+                        <div class="mini-bar-fill fullness" id="fullnessBar" style="width:60%"></div>
+                    </div>
+                    <span class="mini-stat-val" id="fullness">60</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 存款 -->
+    <div class="savings-section">
+        <div class="savings-top">
+            <div class="savings-left">
+                <div class="savings-label">本月已存</div>
+                <div class="savings-amount">
+                    <span class="savings-num" id="totalMoney">0</span>
+                    <span class="savings-unit">元</span>
+                </div>
+            </div>
+            <div class="savings-right">
+                <div class="goal-label">存款目标</div>
+                <div class="goal-num">100 ~ 250 元</div>
+            </div>
+        </div>
+        <div class="progress-track">
+            <div class="progress-fill" id="progressBar" style="width:0%"></div>
+        </div>
+        <div class="progress-milestones">
+            <span class="milestone" id="ms0">起步</span>
+            <span class="milestone" id="ms40">100元</span>
+            <span class="milestone" id="ms72">180元</span>
+            <span class="milestone" id="ms88">220元</span>
+            <span class="milestone" id="ms100">250元🏆</span>
+        </div>
+    </div>
+
+    <!-- 故事 -->
+    <div class="story-section" id="storyArea"></div>
+
+</div>
+
+<!-- 存钱弹窗 -->
+<div class="overlay" id="saveModal">
+    <div class="dialog">
+        <span class="dialog-cat" id="modalCat">😺</span>
+        <div class="dialog-title" id="modalTitle">完成啦！请存入</div>
+        <div class="dialog-amount"><span id="modalMoney">5</span><span class="unit">元</span></div>
+        <div class="dialog-desc" id="modalDesc">把这笔钱存到你的存钱罐吧~</div>
+        <div class="dialog-btns">
+            <button class="dialog-btn secondary" id="skipBtn">暂时跳过</button>
+            <button class="dialog-btn primary" id="doneBtn">✓ 已存好</button>
+        </div>
+    </div>
+</div>
+
+<!-- 历史记录弹窗 -->
+<div class="overlay" id="historyModal">
+    <div class="dialog">
+        <div class="dialog::before"></div>
+        <div class="history-header">存钱日记</div>
+        <div class="history-sub" id="historySub">记录每一天的选择</div>
+        <div class="history-scroll" id="historyList"></div>
+        <div class="history-summary" id="historySummary" style="display:none">
+            <span class="history-summary-label">共存入</span>
+            <span class="history-summary-val" id="historyTotal">0元</span>
+        </div>
+        <div class="dialog-btns" style="margin-top:14px">
+            <button class="dialog-btn secondary" id="closeHistoryBtn">关闭</button>
+            <button class="dialog-btn primary" id="resetBtn">🔄 重新开始</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'catDiary_v1';
+const $ = id => document.getElementById(id);
+
+const initState = () => ({
+    catName: '小橘',
+    day: 1,
+    totalMoney: 0,
+    intimacy: 50,
+    fullness: 60,
+    eventOrder: [],
+    history: [],
+    ended: false,
+});
+
+let state = initState();
+
+const EVENTS = [
+    { id:1, title:'猫咪半夜蹦迪 🌙', desc:'{name}凌晨三点开始疯狂跑酷，把你吵醒了...', options:[
+        { text:'温柔哄睡', emoji:'🌙', intimacy:6, fullness:-2, money:3, tip:'亲密度+6' },
+        { text:'戴耳塞继续睡', emoji:'😴', intimacy:-4, fullness:-2, money:5, tip:'省心省事' },
+        { text:'陪玩逗猫棒', emoji:'🎣', intimacy:10, fullness:-4, money:8, tip:'亲密度+10' },
+    ]},
+    { id:2, title:'超市猫粮特价 🛒', desc:'超市大促销，{name}用期待的眼神看着你...', options:[
+        { text:'买高级罐头', emoji:'🥫', intimacy:12, fullness:10, money:3, tip:'花钱买开心' },
+        { text:'只买普通猫粮', emoji:'📦', intimacy:3, fullness:5, money:8, tip:'省钱存更多' },
+        { text:'自制鸡胸肉', emoji:'🍗', intimacy:8, fullness:7, money:6, tip:'省钱又有爱' },
+    ]},
+    { id:3, title:'同事邀约聚餐 🍻', desc:'下班后同事喊着聚餐，但{name}在家等你...', options:[
+        { text:'参加聚餐', emoji:'🍻', intimacy:-10, fullness:-3, money:0, tip:'社交消费大' },
+        { text:'婉拒回家陪猫', emoji:'🏠', intimacy:8, fullness:3, money:12, tip:'省了聚餐钱' },
+        { text:'早点离场', emoji:'🕐', intimacy:2, fullness:0, money:6, tip:'折中选择' },
+    ]},
+    { id:4, title:'{name}突然呕吐 🤢', desc:'猫咪吐毛球了，精神不太好...', options:[
+        { text:'带去看医生', emoji:'🏥', intimacy:15, fullness:12, money:0, tip:'花钱保平安' },
+        { text:'喂化毛膏观察', emoji:'💊', intimacy:4, fullness:6, money:5, tip:'家庭护理' },
+        { text:'先观察几天', emoji:'👀', intimacy:-8, fullness:-12, money:10, tip:'有风险' },
+    ]},
+    { id:5, title:'发现兼职机会 💼', desc:'朋友介绍了线上兼职，可以在家做...', options:[
+        { text:'全力接单', emoji:'💪', intimacy:-5, fullness:-4, money:15, tip:'赚钱存钱' },
+        { text:'为猫猫放弃', emoji:'😌', intimacy:6, fullness:4, money:3, tip:'陪伴优先' },
+        { text:'适度做一些', emoji:'⚖️', intimacy:-2, fullness:-2, money:10, tip:'平衡之道' },
+    ]},
+    { id:6, title:'{name}抓坏沙发 😱', desc:'新买的沙发被抓破了，心疼又无奈...', options:[
+        { text:'严厉训斥', emoji:'😠', intimacy:-15, fullness:-3, money:8, tip:'关系受损' },
+        { text:'买猫抓板教育', emoji:'🪵', intimacy:10, fullness:2, money:3, tip:'花钱教育' },
+        { text:'DIY修补', emoji:'🧵', intimacy:4, fullness:1, money:6, tip:'动手省钱' },
+    ]},
+    { id:7, title:'发薪日到了 🎉', desc:'今天发工资啦，可以好好犒劳一下~', options:[
+        { text:'给猫买新窝', emoji:'🛏️', intimacy:15, fullness:3, money:5, tip:'花钱买幸福' },
+        { text:'全部存起来', emoji:'🏦', intimacy:0, fullness:0, money:15, tip:'理财优先' },
+        { text:'买猫零食', emoji:'🍬', intimacy:10, fullness:8, money:8, tip:'小小犒劳' },
+    ]},
+    { id:8, title:'邻居送猫粮 🎁', desc:'遛猫时邻居夸{name}可爱，送了一袋猫粮！', options:[
+        { text:'开心收下', emoji:'🎁', intimacy:5, fullness:4, money:10, tip:'省了开销' },
+        { text:'客气拒绝', emoji:'🙏', intimacy:2, fullness:1, money:5, tip:'保持距离' },
+        { text:'回赠小礼物', emoji:'🎀', intimacy:3, fullness:4, money:3, tip:'礼尚往来' },
+    ]},
+    { id:9, title:'网购诱惑 🛍️', desc:'刷到超可爱的猫咪玩具，正在打折...', options:[
+        { text:'买买买', emoji:'🛒', intimacy:12, fullness:0, money:0, tip:'快乐消费' },
+        { text:'加入收藏夹', emoji:'❤️', intimacy:0, fullness:0, money:12, tip:'理性克制' },
+        { text:'只买一个小的', emoji:'🎾', intimacy:6, fullness:0, money:6, tip:'小买怡情' },
+    ]},
+    { id:10, title:'猫咪感冒了 🤧', desc:'{name}有点流鼻涕，似乎感冒了...', options:[
+        { text:'去宠物医院', emoji:'🚗', intimacy:18, fullness:15, money:0, tip:'专业治疗' },
+        { text:'网上买药', emoji:'💉', intimacy:5, fullness:8, money:6, tip:'省钱有风险' },
+        { text:'保暖观察', emoji:'🧣', intimacy:-5, fullness:-8, money:10, tip:'希望自愈' },
+    ]},
+    { id:11, title:'朋友来访 🏠', desc:'好友要来家里做客，{name}有点怕生...', options:[
+        { text:'买零食招待', emoji:'🍪', intimacy:-3, fullness:2, money:3, tip:'社交支出' },
+        { text:'约在外面见', emoji:'☕', intimacy:2, fullness:0, money:5, tip:'保护猫咪' },
+        { text:'让朋友撸猫', emoji:'🤝', intimacy:5, fullness:0, money:8, tip:'省钱社交' },
+    ]},
+    { id:12, title:'猫砂用完了 📦', desc:'发现猫砂快见底了，需要补货...', options:[
+        { text:'买高级豆腐砂', emoji:'✨', intimacy:8, fullness:0, money:3, tip:'品质生活' },
+        { text:'买普通猫砂', emoji:'📦', intimacy:2, fullness:0, money:8, tip:'经济实惠' },
+        { text:'等打折再买', emoji:'⏰', intimacy:-5, fullness:-3, money:10, tip:'冒险省钱' },
+    ]},
+    { id:13, title:'周末好天气 ☀️', desc:'难得的好天气，想带{name}出门晒太阳~', options:[
+        { text:'买猫包出门', emoji:'🎒', intimacy:15, fullness:-2, money:3, tip:'美好时光' },
+        { text:'阳台晒太阳', emoji:'🌤️', intimacy:8, fullness:2, money:8, tip:'省钱快乐' },
+        { text:'宅家撸猫', emoji:'🛋️', intimacy:5, fullness:3, money:6, tip:'舒适日常' },
+    ]},
+    { id:14, title:'猫咪挑食 😾', desc:'{name}突然不吃猫粮了，只看着你叫...', options:[
+        { text:'换高级猫粮', emoji:'👑', intimacy:10, fullness:12, money:3, tip:'满足毛孩' },
+        { text:'拌点肉泥', emoji:'🥩', intimacy:6, fullness:8, money:6, tip:'加点料' },
+        { text:'饿着等它吃', emoji:'😤', intimacy:-8, fullness:-10, money:10, tip:'硬碰硬' },
+    ]},
+    { id:15, title:'半夜被踩醒 🐾', desc:'凌晨{name}踩着你的脸把你弄醒了...', options:[
+        { text:'起来加餐', emoji:'🍽️', intimacy:8, fullness:6, money:5, tip:'满足馋猫' },
+        { text:'摸摸继续睡', emoji:'💤', intimacy:4, fullness:-2, money:7, tip:'敷衍过去' },
+        { text:'关门不让进', emoji:'🚪', intimacy:-10, fullness:-3, money:10, tip:'猫咪委屈' },
+    ]},
+    { id:16, title:'猫咪掉毛季 🧹', desc:'换季了，{name}开始疯狂掉毛...', options:[
+        { text:'买除毛神器', emoji:'🧹', intimacy:6, fullness:0, money:4, tip:'解决问题' },
+        { text:'勤快打扫', emoji:'🏠', intimacy:3, fullness:0, money:8, tip:'辛苦省钱' },
+        { text:'随它去吧', emoji:'🤷', intimacy:-2, fullness:-2, money:10, tip:'佛系养猫' },
+    ]},
+    { id:17, title:'视频意外火了 📱', desc:'之前拍的{name}视频突然火了！', options:[
+        { text:'继续更新', emoji:'📹', intimacy:3, fullness:-2, money:8, tip:'小网红' },
+        { text:'低调处理', emoji:'🤫', intimacy:5, fullness:2, money:5, tip:'保护隐私' },
+        { text:'接广告赚钱', emoji:'💰', intimacy:-3, fullness:-2, money:12, tip:'恰饭时间' },
+    ]},
+    { id:18, title:'疫苗时间到 💉', desc:'到了{name}打疫苗的时候了...', options:[
+        { text:'去正规医院', emoji:'🏥', intimacy:10, fullness:5, money:0, tip:'健康保障' },
+        { text:'找便宜诊所', emoji:'💊', intimacy:3, fullness:3, money:5, tip:'省点钱' },
+        { text:'下个月再说', emoji:'📅', intimacy:-5, fullness:-5, money:10, tip:'拖延症' },
+    ]},
+    { id:19, title:'猫咪发腮了 🐱', desc:'{name}最近胖了，脸变圆了好多！', options:[
+        { text:'继续投喂', emoji:'🍖', intimacy:8, fullness:10, money:4, tip:'圆脸可爱' },
+        { text:'控制饮食', emoji:'🥗', intimacy:2, fullness:-3, money:8, tip:'健康第一' },
+        { text:'买减肥粮', emoji:'🌾', intimacy:5, fullness:5, money:5, tip:'科学喂养' },
+    ]},
+    { id:20, title:'下雨天 🌧️', desc:'外面下大雨，{name}趴在窗边看雨...', options:[
+        { text:'陪它看雨', emoji:'🌧️', intimacy:10, fullness:2, money:6, tip:'温馨时刻' },
+        { text:'玩逗猫棒', emoji:'🎣', intimacy:8, fullness:-3, money:5, tip:'消耗精力' },
+        { text:'各玩各的', emoji:'📱', intimacy:0, fullness:0, money:8, tip:'互不打扰' },
+    ]},
+    { id:21, title:'快递到了 📦', desc:'买的东西到了，{name}对箱子更感兴趣...', options:[
+        { text:'让它玩箱子', emoji:'📦', intimacy:8, fullness:0, money:7, tip:'简单快乐' },
+        { text:'拆开新玩具', emoji:'🎁', intimacy:10, fullness:0, money:4, tip:'双倍快乐' },
+        { text:'先收起来', emoji:'🗄️', intimacy:-2, fullness:0, money:8, tip:'猫咪失望' },
+    ]},
+    { id:22, title:'猫咪生日 🎂', desc:'今天是{name}的生日！', options:[
+        { text:'买蛋糕庆祝', emoji:'🎂', intimacy:20, fullness:10, money:3, tip:'大日子！' },
+        { text:'加餐庆祝', emoji:'🍗', intimacy:12, fullness:8, money:6, tip:'简单幸福' },
+        { text:'普通一天', emoji:'📅', intimacy:-5, fullness:0, money:10, tip:'忘记了...' },
+    ]},
+    { id:23, title:'学会新技能 ✨', desc:'{name}学会了击掌！', options:[
+        { text:'零食奖励', emoji:'🍬', intimacy:12, fullness:6, money:5, tip:'正向激励' },
+        { text:'疯狂夸奖', emoji:'👏', intimacy:10, fullness:0, money:8, tip:'语言鼓励' },
+        { text:'继续训练', emoji:'🎓', intimacy:5, fullness:-3, money:6, tip:'精益求精' },
+    ]},
+    { id:24, title:'工作加班 💼', desc:'今天要加班，{name}一个人在家...', options:[
+        { text:'请假回家', emoji:'🏠', intimacy:12, fullness:5, money:0, tip:'扣工资' },
+        { text:'留自动喂食器', emoji:'🤖', intimacy:0, fullness:3, money:8, tip:'科技养猫' },
+        { text:'加完班回家', emoji:'🌙', intimacy:-5, fullness:-5, money:10, tip:'赚加班费' },
+    ]},
+    { id:25, title:'猫咪藏起来了 🙀', desc:'找了半天才发现{name}躲在衣柜里...', options:[
+        { text:'轻声哄出来', emoji:'🤫', intimacy:8, fullness:0, money:6, tip:'耐心等待' },
+        { text:'用零食引诱', emoji:'🐟', intimacy:10, fullness:5, money:5, tip:'美食诱惑' },
+        { text:'不管它', emoji:'🤷', intimacy:-3, fullness:-2, money:8, tip:'让它自己' },
+    ]},
+    { id:26, title:'体检报告 📋', desc:'带{name}去体检，结果出来了...', options:[
+        { text:'做全套检查', emoji:'🔬', intimacy:15, fullness:8, money:0, tip:'全面了解' },
+        { text:'基础检查', emoji:'📋', intimacy:8, fullness:5, money:5, tip:'够用就行' },
+        { text:'看着健康就行', emoji:'👀', intimacy:-5, fullness:-3, money:10, tip:'省钱冒险' },
+    ]},
+    { id:27, title:'猫咪打呼噜 😴', desc:'{name}睡着了，发出满足的呼噜声...', options:[
+        { text:'静静陪着', emoji:'🤫', intimacy:10, fullness:3, money:6, tip:'岁月静好' },
+        { text:'偷偷拍照', emoji:'📸', intimacy:6, fullness:0, money:7, tip:'记录美好' },
+        { text:'摸醒它玩', emoji:'🖐️', intimacy:-5, fullness:-2, money:8, tip:'它会生气' },
+    ]},
+    { id:28, title:'换季大扫除 🧹', desc:'该给{name}的窝和用品大清洗了...', options:[
+        { text:'全部换新', emoji:'✨', intimacy:12, fullness:5, money:3, tip:'焕然一新' },
+        { text:'清洗干净', emoji:'🧼', intimacy:8, fullness:3, money:7, tip:'省钱环保' },
+        { text:'简单处理', emoji:'🤏', intimacy:2, fullness:0, money:9, tip:'差不多行' },
+    ]},
+    { id:29, title:'猫咪撒娇 🥺', desc:'{name}一直蹭你的腿，喵喵叫...', options:[
+        { text:'抱起来撸', emoji:'🤗', intimacy:15, fullness:2, money:5, tip:'幸福时刻' },
+        { text:'给点零食', emoji:'🍬', intimacy:10, fullness:6, money:6, tip:'用食物爱' },
+        { text:'等会再理', emoji:'⏰', intimacy:-8, fullness:-3, money:10, tip:'猫咪受伤' },
+    ]},
+    { id:30, title:'月底结算日 📊', desc:'这个月和{name}一起度过了，回顾一下吧！', options:[
+        { text:'买礼物庆祝', emoji:'🎁', intimacy:15, fullness:5, money:5, tip:'仪式感' },
+        { text:'简单庆祝', emoji:'🎉', intimacy:8, fullness:3, money:8, tip:'知足常乐' },
+        { text:'下月继续加油', emoji:'💪', intimacy:5, fullness:0, money:10, tip:'展望未来' },
+    ]},
+];
+
+// ========== 工具 ==========
+function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length-1; i>0; i--) {
+        const j = Math.floor(Math.random()*(i+1));
+        [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+}
+function clamp(v,mn,mx) { return Math.max(mn, Math.min(mx, v)); }
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function load() {
+    try {
+        const s = localStorage.getItem(STORAGE_KEY);
+        if (s) state = { ...initState(), ...JSON.parse(s) };
+    } catch { state = initState(); }
+    if (!state.eventOrder || state.eventOrder.length < 30)
+        state.eventOrder = shuffle(EVENTS.map(e => e.id));
+}
+
+function getMood() {
+    const {intimacy: i, fullness: f} = state;
+    if (i >= 80 && f >= 70) return { emoji:'😻', text:'超幸福！' };
+    if (i >= 60 && f >= 50) return { emoji:'😺', text:'开心~' };
+    if (i >= 40 && f >= 30) return { emoji:'🐱', text:'还好啦' };
+    if (i < 30 || f < 20)   return { emoji:'😿', text:'不开心...' };
+    return { emoji:'😾', text:'有点烦' };
+}
+
+function getWeather() {
+    const w = ['☀️','☀️','⛅','☁️','🌧️','🌈'];
+    return w[Math.floor(Math.random()*w.length)];
+}
+
+function updateUndoBtn() {
+    const btn = $('undoBtn');
+    btn.disabled = state.history.length === 0 || state.ended;
+}
+
+function undoLastChoice() {
+    if (state.history.length === 0 || state.ended) return;
+    const last = state.history.pop();
+    state.day--;
+    state.totalMoney -= last.amount;
+    state.intimacy = clamp(state.intimacy - last.intimacyChange + 1, 0, 100);
+    state.fullness  = clamp(state.fullness  - last.fullnessChange + 2, 0, 100);
+    save();
+    updateUI();
+    renderEvent();
+    updateUndoBtn();
+    showToast('已撤回上一步 ↩');
+}
+
+function showToast(text) {
+    const t = $('toast');
+    t.textContent = text;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ========== UI ==========
+function updateUI() {
+    $('dayNum').textContent = state.day;
+    $('nameShow').textContent = state.catName;
+
+    // 数字动画
+    const moneyEl = $('totalMoney');
+    moneyEl.textContent = state.totalMoney;
+    moneyEl.classList.remove('num-pop');
+    void moneyEl.offsetWidth;
+    moneyEl.classList.add('num-pop');
+
+    // 属性条
+    $('intimacy').textContent = state.intimacy;
+    $('fullness').textContent  = state.fullness;
+    $('intimacyBar').style.width = state.intimacy + '%';
+    $('fullnessBar').style.width  = state.fullness  + '%';
+
+    // 心情
+    const mood = getMood();
+    $('catFace').textContent = mood.emoji;
+    $('mood').textContent    = mood.text;
+
+    // 进度
+    const pct = Math.min(100, Math.round((state.totalMoney / 250) * 100));
+    $('progressBar').style.width = pct + '%';
+
+    // 里程碑高亮
+    const milestones = [
+        { id:'ms0',  threshold: 0 },
+        { id:'ms40', threshold: 100 },
+        { id:'ms72', threshold: 180 },
+        { id:'ms88', threshold: 220 },
+        { id:'ms100',threshold: 250 },
+    ];
+    milestones.forEach(m => {
+        const el = $(m.id);
+        if (el) el.classList.toggle('reached', state.totalMoney >= m.threshold);
+    });
+}
+
+function getEvent() {
+    const id = state.eventOrder[state.day - 1];
+    const evt = EVENTS.find(e => e.id === id);
+    return {
+        ...evt,
+        title: evt.title.replace('{name}', state.catName),
+        desc:  evt.desc.replace('{name}', state.catName),
+    };
+}
+
+function renderEvent() {
+    if (state.ended) { renderEnding(); return; }
+
+    $('weather').textContent = getWeather();
+    const evt = getEvent();
+
+    $('storyArea').innerHTML = `
+        <div class="event-card">
+            <div class="event-title">${evt.title}</div>
+            <div class="event-desc">${evt.desc}</div>
+        </div>
+        <div class="options-list">
+            ${evt.options.map((opt, i) => `
+                <button class="opt-btn" data-idx="${i}">
+                    <div class="opt-top">
+                        <span class="opt-emoji">${opt.emoji}</span>
+                        <span class="opt-label">${opt.text}</span>
+                    </div>
+                    <div class="opt-bottom">
+                        <span class="opt-tip">${opt.tip}</span>
+                        <span class="opt-money-badge">存 ${opt.money} 元</span>
+                    </div>
+                </button>
+            `).join('')}
+        </div>
+    `;
+
+    document.querySelectorAll('.opt-btn').forEach(btn => {
+        btn.onclick = () => handleChoice(parseInt(btn.dataset.idx));
+    });
+}
+
+let pendingOpt = null;
+
+function handleChoice(idx) {
+    const evt = getEvent();
+    pendingOpt = evt.options[idx];
+
+    document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+
+    state.intimacy = clamp(state.intimacy + pendingOpt.intimacy, 0, 100);
+    state.fullness  = clamp(state.fullness  + pendingOpt.fullness,  0, 100);
+    state.fullness  = Math.max(0, state.fullness - 2);
+    state.intimacy  = Math.max(0, state.intimacy - 1);
+
+    updateUI();
+
+    const mood = getMood();
+    $('modalCat').textContent   = mood.emoji;
+    $('modalMoney').textContent = pendingOpt.money;
+    $('modalTitle').textContent = pendingOpt.money > 0 ? '完成啦！请存入' : '今天不用存钱~';
+    $('modalDesc').textContent  = pendingOpt.money > 0
+        ? `选择了「${pendingOpt.text}」，把 ${pendingOpt.money} 元存到存钱罐吧！`
+        : `选择了「${pendingOpt.text}」，今天花销较大，下次继续努力~`;
+
+    $('saveModal').classList.add('show');
+}
+
+function confirmSave(saved) {
+    const amount = saved ? pendingOpt.money : 0;
+    state.totalMoney += amount;
+
+    state.history.push({
+        day: state.day,
+        choice: pendingOpt.text,
+        amount,
+        saved,
+        intimacyChange: pendingOpt.intimacy,
+        fullnessChange:  pendingOpt.fullness,
+    });
+
+    $('saveModal').classList.remove('show');
+
+    if (amount > 0) showToast(`💰 +${amount}元 已存入！`);
+
+    // 里程碑提示
+    const prev = state.totalMoney - amount;
+    if (prev < 100 && state.totalMoney >= 100) showToast('🎯 达到100元小目标！继续加油！');
+    else if (prev < 180 && state.totalMoney >= 180) showToast('⭐ 太棒了！存到180元了！');
+    else if (prev < 220 && state.totalMoney >= 220) showToast('🏆 220元！接近完美存款！');
+
+    state.day++;
+    if (state.day > 30) state.ended = true;
+
+    save();
+    updateUI();
+    updateUndoBtn();
+
+    setTimeout(() => renderEvent(), 400);
+}
+
+function renderEnding() {
+    const total = state.totalMoney;
+    let ribbon, emoji, msg;
+
+    if (total >= 220 && state.intimacy >= 80) {
+        ribbon = '🏆 完美结局'; emoji = '😻👑💰';
+        msg = `太厉害了！你和${state.catName}度过了幸福的一个月，存下了${total}元，感情也超棒！`;
+    } else if (total >= 180) {
+        ribbon = '🌟 优秀结局'; emoji = '😺💰✨';
+        msg = `很棒！存下了${total}元，${state.catName}也很开心。理财和养猫两不误！`;
+    } else if (total >= 130) {
+        ribbon = '💕 温馨结局'; emoji = '😺❤️';
+        msg = `存下了${total}元，虽然不是最多，但和${state.catName}的感情很好呀~有爱最重要！`;
+    } else if (total >= 100) {
+        ribbon = '📊 达标结局'; emoji = '🐱💼';
+        msg = `达标了！存下${total}元。下个月挑战存更多，${state.catName}相信你！`;
+    } else {
+        ribbon = '🌱 成长结局'; emoji = '🐱🌿';
+        msg = `这个月存了${total}元，还需努力。${state.catName}一直陪着你，下次会更好！`;
+    }
+
+    $('storyArea').innerHTML = `
+        <div class="ending">
+            <div class="ending-ribbon">${ribbon}</div>
+            <span class="ending-emoji">${emoji}</span>
+            <div class="ending-stats">
+                <div class="ending-stat">
+                    <div class="ending-stat-num">${total}元</div>
+                    <div class="ending-stat-label">本月存款</div>
+                </div>
+                <div class="ending-stat">
+                    <div class="ending-stat-num">${state.intimacy}</div>
+                    <div class="ending-stat-label">亲密度</div>
+                </div>
+                <div class="ending-stat">
+                    <div class="ending-stat-num">${state.fullness}</div>
+                    <div class="ending-stat-label">饱腹感</div>
+                </div>
+                <div class="ending-stat">
+                    <div class="ending-stat-num">${state.history.filter(h=>h.saved).length}天</div>
+                    <div class="ending-stat-label">存钱天数</div>
+                </div>
+            </div>
+            <div class="ending-msg">${msg}</div>
+            <div class="ending-tip">💡 记得把存的钱真的转入你的储蓄账户哦～</div>
+            <button class="replay-btn" id="replayBtn">🔄 开始新的一月</button>
+        </div>
+    `;
+
+    $('replayBtn').onclick = resetGame;
+}
+
+function renderHistory() {
+    const list = state.history;
+    if (list.length === 0) {
+        $('historyList').innerHTML = '<div class="history-empty">📖 还没有记录～快去开始吧！</div>';
+        $('historySummary').style.display = 'none';
+    } else {
+        $('historyList').innerHTML = list.map(h => `
+            <div class="history-entry">
+                <span class="h-day">第${h.day}天</span>
+                <span class="h-action">${h.choice}</span>
+                <span class="${h.saved ? 'h-saved' : 'h-skipped'}">${h.saved ? '+'+h.amount+'元' : '跳过'}</span>
+            </div>
+        `).join('');
+
+        const saved = list.filter(h => h.saved).reduce((sum, h) => sum + h.amount, 0);
+        $('historySummary').style.display = 'flex';
+        $('historyTotal').textContent = saved + '元';
+    }
+
+    const savedDays = list.filter(h => h.saved).length;
+    $('historySub').textContent = `已记录 ${list.length} 天 · 存钱 ${savedDays} 次`;
+    $('historyModal').classList.add('show');
+}
+
+function resetGame() {
+    state = initState();
+    state.eventOrder = shuffle(EVENTS.map(e => e.id));
+    save();
+    updateUI();
+    renderEvent();
+    updateUndoBtn();
+    $('historyModal').classList.remove('show');
+    showToast('新的一月开始啦 🌱');
+}
+
+// ========== 事件绑定 ==========
+function bindEvents() {
+    $('doneBtn').onclick    = () => confirmSave(true);
+    $('skipBtn').onclick    = () => confirmSave(false);
+    $('undoBtn').onclick    = undoLastChoice;
+    $('historyBtn').onclick = renderHistory;
+    $('closeHistoryBtn').onclick = () => $('historyModal').classList.remove('show');
+    $('resetBtn').onclick   = resetGame;
+
+    $('editBtn').onclick = () => {
+        $('nameRow').style.display = 'none';
+        $('nameEditRow').classList.add('show');
+        $('nameInput').value = state.catName;
+        $('nameInput').focus();
+    };
+
+    $('nameOkBtn').onclick = () => {
+        const name = $('nameInput').value.trim() || '小橘';
+        state.catName = name.slice(0, 6);
+        save();
+        $('nameShow').textContent = state.catName;
+        $('nameEditRow').classList.remove('show');
+        $('nameRow').style.display = 'flex';
+        renderEvent();
+        showToast(`猫咪改名为「${state.catName}」啦！`);
+    };
+
+    $('nameInput').onkeypress = e => { if (e.key === 'Enter') $('nameOkBtn').click(); };
+
+    $('catFace').onclick = () => {
+        const frame = $('catFace').closest ? $('catFace').parentElement : $('catFace');
+        frame.classList.remove('bounce');
+        void frame.offsetWidth;
+        frame.classList.add('bounce');
+        const msgs = ['喵~', '摸摸我~', '呼噜呼噜', '我在这里！', '嘿嘿嘿'];
+        showToast(msgs[Math.floor(Math.random() * msgs.length)]);
+    };
+
+    // 点击遮罩关闭（历史记录弹窗）
+    $('historyModal').onclick = e => {
+        if (e.target === $('historyModal')) $('historyModal').classList.remove('show');
+    };
+}
+
+// ========== 启动 ==========
+load();
+updateUI();
+renderEvent();
+bindEvents();
+updateUndoBtn();
+
+setTimeout(() => {
+    $('splash').classList.add('hide');
+    setTimeout(() => $('splash').remove(), 600);
+}, 1800);
+</script>
+</body>
+</html>
