@@ -914,6 +914,8 @@ const initState = () => ({
     eventOrder: [],
     history: [],
     ended: false,
+    startDate: null,
+    lastPlayedDate: null,
 });
 
 let state = initState();
@@ -1072,6 +1074,13 @@ const EVENTS = [
 ];
 
 // ========== 工具 ==========
+function getTodayStr() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
 function shuffle(arr) {
     const a = [...arr];
     for (let i = a.length-1; i>0; i--) {
@@ -1087,8 +1096,31 @@ function load() {
         const s = localStorage.getItem(STORAGE_KEY);
         if (s) state = { ...initState(), ...JSON.parse(s) };
     } catch { state = initState(); }
-    if (!state.eventOrder || state.eventOrder.length < 30)
+
+    if (!state.eventOrder || state.eventOrder.length < 30) {
         state.eventOrder = shuffle(EVENTS.map(e => e.id));
+    }
+
+    const today = getTodayStr();
+
+    if (!state.startDate) {
+        state.startDate = today;
+        state.lastPlayedDate = null;
+        save();
+    }
+
+    const start = new Date(state.startDate);
+    const now = new Date(today);
+    const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24)) + 1;
+
+    if (diffDays > 30) {
+        state.day = 30;
+        state.ended = true;
+    } else {
+        state.day = diffDays;
+    }
+
+    save();
 }
 
 function getMood() {
@@ -1113,10 +1145,15 @@ function updateUndoBtn() {
 function undoLastChoice() {
     if (state.history.length === 0 || state.ended) return;
     const last = state.history.pop();
-    state.day--;
+
+    if (last.day === state.day) {
+        state.lastPlayedDate = null;
+    }
+
     state.totalMoney -= last.amount;
     state.intimacy = clamp(state.intimacy - last.intimacyChange + 1, 0, 100);
-    state.fullness  = clamp(state.fullness  - last.fullnessChange + 2, 0, 100);
+    state.fullness = clamp(state.fullness - last.fullnessChange + 2, 0, 100);
+    state.ended = false;
     save();
     updateUI();
     renderEvent();
@@ -1185,6 +1222,21 @@ function getEvent() {
 function renderEvent() {
     if (state.ended) { renderEnding(); return; }
 
+    const today = getTodayStr();
+
+    if (state.lastPlayedDate === today) {
+        $('storyArea').innerHTML = `
+            <div class="event-card">
+                <div class="event-title">📅 今日已完成</div>
+                <div class="event-desc">
+                    你今天已经做出了选择啦～<br>
+                    明天 0 点会有新的故事，${state.catName}等你哦！
+                </div>
+            </div>
+        `;
+        return;
+    }
+
     $('weather').textContent = getWeather();
     const evt = getEvent();
 
@@ -1250,21 +1302,21 @@ function confirmSave(saved) {
         amount,
         saved,
         intimacyChange: pendingOpt.intimacy,
-        fullnessChange:  pendingOpt.fullness,
+        fullnessChange: pendingOpt.fullness,
     });
+
+    state.lastPlayedDate = getTodayStr();
 
     $('saveModal').classList.remove('show');
 
     if (amount > 0) showToast(`💰 +${amount}元 已存入！`);
 
-    // 里程碑提示
     const prev = state.totalMoney - amount;
     if (prev < 100 && state.totalMoney >= 100) showToast('🎯 达到100元小目标！继续加油！');
     else if (prev < 180 && state.totalMoney >= 180) showToast('⭐ 太棒了！存到180元了！');
     else if (prev < 220 && state.totalMoney >= 220) showToast('🏆 220元！接近完美存款！');
 
-    state.day++;
-    if (state.day > 30) state.ended = true;
+    if (state.day >= 30) state.ended = true;
 
     save();
     updateUI();
@@ -1352,6 +1404,8 @@ function renderHistory() {
 function resetGame() {
     state = initState();
     state.eventOrder = shuffle(EVENTS.map(e => e.id));
+    state.startDate = getTodayStr();
+    state.lastPlayedDate = null;
     save();
     updateUI();
     renderEvent();
